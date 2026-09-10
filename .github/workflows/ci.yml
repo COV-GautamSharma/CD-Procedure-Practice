@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7.0.1
+
+      - name: Build and start application
+        run: docker compose up --build --wait
+
+      - name: Check containers
+        run: docker compose ps
+
+      - name: Test frontend
+        run: curl -f --retry 5 --retry-delay 2 http://localhost:3000
+
+      - name: Test backend through Nginx
+        run: curl -f --retry 5 --retry-delay 2 http://localhost:3000/api/status
+
+      - name: Show logs
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop application
+        if: always()
+        run: docker compose down
