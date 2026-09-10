@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CD Procedure Practice</title>
+</head>
+
+<body>
+
+    <h1>🚀 CD Procedure Practice</h1>
+
+    <p id="application-status">Checking application...</p>
+    <p id="backend-status">Checking backend...</p>
+    <p id="version"></p>
+
+    <script>
+        async function checkBackend() {
+            try {
+                const response = await fetch("/api/status");
+
+                if (!response.ok) {
+                    throw new Error("Backend request failed");
+                }
+
+                const data = await response.json();
+
+                document.getElementById("application-status").textContent =
+                    "Application is LIVE ✅";
+
+                document.getElementById("backend-status").textContent =
+                    "Backend: Connected ✅";
+
+                document.getElementById("version").textContent =
+                    "Deployment Version: " + data.version;
+
+            } catch (error) {
+                document.getElementById("application-status").textContent =
+                    "Application is running, but backend is unavailable ❌";
+
+                document.getElementById("backend-status").textContent =
+                    "Backend: Disconnected ❌";
+
+                console.error(error);
+            }
+        }
+
+        checkBackend();
+    </script>
+
+</body>
+</html>
