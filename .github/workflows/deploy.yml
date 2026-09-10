@@ -19,14 +19,14 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & push backend
-        uses: docker/build-push-action@v1.16.0
+        uses: docker/build-push-action@v7.3.0
         with:
           context: ./frontend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
 
       - name: Build & push frontend
-        uses: docker/build-push-action@v1.16.0
+        uses: docker/build-push-action@v7.3.0
         with:
           context: ./frontend
           push: true
