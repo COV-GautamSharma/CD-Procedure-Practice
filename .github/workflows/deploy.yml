@@ -21,7 +21,7 @@ jobs:
       - name: Build & push backend
         uses: docker/build-push-action@v7.3.0
         with:
-          context: ./frontend
+          context: ./backend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
 
