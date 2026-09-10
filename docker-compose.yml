@@ -1,5 +1,4 @@
 services:
-
   frontend:
     build: ./frontend
     ports:
@@ -12,9 +11,8 @@ services:
     build: ./backend
     expose:
       - "5000"
-
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5000/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:5000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
