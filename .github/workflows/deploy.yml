@@ -52,16 +52,43 @@ jobs:
       - name: Copy compose file to server
         run: |
           scp -i ~/.ssh/deploy_key docker-compose.prod.yml \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy/docker-compose.yml
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy/docker-compose.new.yml
 
-      - name: Deploy over SSH
+      - name: Deploy with safe swap and rollback
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            set -e
             cd ~/deploy
-            docker compose down
-            docker compose pull
-            docker compose up -d --wait
-            docker compose ps
+
+            echo "Pulling new images defined in staging file . . ."
+            docker compose -f docker-compose.new.yml pull
+
+            echo "Backing up current live compose file ( if exists )"
+            if [ -f docker-compose.yml ]; then
+              cp docker-compose.yml docker-compose.backup.yml
+            fi
+
+            echo "Bringing down current running stack . . ."
+            if [ -f docker-compose.yml ]; then
+              docker compose -f docker-compose.yml down
+            fi
+
+            echo "Starting new stack from staging file . . ."
+            docker compose -f docker-compose.new.yml up -d --wait
+
+            echo "Running local health check . . ."
+            if curl -f --retry 5 --retry-delay 5 http://localhost/api/status; then
+              echo "New stack healthy. Promoting staging file to live"
+              mv docker-compose.new.yml docker-compose.yml
+              docker compose ps
+            else
+              echo "New stack failed health check. Rolling back . . ."
+              docker compose -f docker-compose.new.yml down
+              if [ -f docker-compose.backup.yml ]; then
+                docker compose -f docker-compose.backup.yml up -d --wait
+              fi
+              exit 1
+            fi
           EOF
 
       - name: Verify site is reachable via domain
