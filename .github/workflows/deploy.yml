@@ -48,7 +48,8 @@ jobs:
 
       - name: Copy compose file to server
         run: |
-          scp -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy/docker-compose.yml
+          scp -i ~/.ssh/deploy_key docker-compose.prod.yml \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy/docker-compose.yml
 
       - name: Deploy over SSH
         run: |
