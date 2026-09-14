@@ -19,7 +19,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build & push backend
-        uses: docker/build-push-action@v7.3.0
+        uses: docker/build-push-action@v7.3.000000
         with:
           context: ./backend
           push: true
