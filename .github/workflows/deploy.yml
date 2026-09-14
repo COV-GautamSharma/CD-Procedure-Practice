@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7.0.1
-        
+
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
@@ -62,9 +62,12 @@ jobs:
             docker compose pull
             docker compose up -d --wait
             docker compose ps
-            curl -f --retry 5 --retry-delay 2 http://localhost:3000
-            curl -f --retry 5 --retry-delay 2 http://localhost:3000/api/status || (docker compose logs && exit 1)
           EOF
+
+      - name: Verify site is reachable via domain
+        run: |
+          curl -f --retry 5 --retry-delay 5 https://dhamaka.covalience.tech
+          curl -f --retry 5 --retry-delay 5 https://dhamaka.covalience.tech/api/status
 
       - name: Clean up SSH key
         if: always()
