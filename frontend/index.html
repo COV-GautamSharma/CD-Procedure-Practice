@@ -3,18 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CD Procedure Practice</title>
+    <title>Dhamaka | CD Procedure Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at 50% 40%, #2d1b4e 0%, #1a0b2e 60%, #0d0518 100%);
+            color: #f5f5f5;
+            position: relative;
+        }
+
+        body.shake {
+            animation: screenShake 0.5s ease;
+        }
+
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-10px, -6px) rotate(-1deg); }
+            20% { transform: translate(12px, 4px) rotate(1deg); }
+            30% { transform: translate(-14px, 6px) rotate(-1.5deg); }
+            40% { transform: translate(14px, -4px) rotate(1.5deg); }
+            50% { transform: translate(-10px, 4px) rotate(-1deg); }
+            60% { transform: translate(10px, -6px) rotate(1deg); }
+            70% { transform: translate(-6px, 4px) rotate(-0.5deg); }
+            80% { transform: translate(6px, -2px) rotate(0.5deg); }
+            90% { transform: translate(-3px, 2px); }
+        }
+
+        .stage {
+            text-align: center;
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #ffcc70, #ff5e78, #d63384);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .domain {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.45);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 44px;
+        }
+
+        #dhamaka-btn {
+            position: relative;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a0b2e;
+            background: linear-gradient(135deg, #ffcc70, #ff5e78);
+            border: none;
+            border-radius: 999px;
+            padding: 22px 52px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 94, 120, 0.4);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        #dhamaka-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 14px 36px rgba(255, 94, 120, 0.55);
+        }
+
+        #dhamaka-btn:active {
+            transform: scale(0.94);
+        }
+
+        #dhamaka-btn.hide {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.5);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .message {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-top: 10px;
+            opacity: 0;
+            transform: scale(0.3) rotate(-8deg);
+            color: #fff;
+            text-shadow: 0 0 25px rgba(255, 200, 100, 0.8), 0 0 50px rgba(255, 94, 120, 0.6);
+        }
+
+        .message.show {
+            animation: messagePop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes messagePop {
+            0%   { opacity: 0; transform: scale(0.3) rotate(-8deg); }
+            60%  { opacity: 1; transform: scale(1.15) rotate(2deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        .particle {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 1;
+        }
+
+        .flash {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 55%, rgba(255,255,255,0.9), rgba(255,204,112,0.3) 40%, transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        .flash.go {
+            animation: flashBang 0.4s ease-out forwards;
+        }
+
+        @keyframes flashBang {
+            0%   { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .replay-note {
+            margin-top: 26px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+            opacity: 0;
+        }
+
+        .replay-note.show {
+            opacity: 1;
+            transition: opacity 0.6s ease 0.4s;
+        }
+
+        /* --- NEW: Backend status box --- */
+        .status-box {
+            margin-top: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 16px 22px;
+            backdrop-filter: blur(10px);
+            display: inline-flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 260px;
+            z-index: 2;
+        }
+
+        .status-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            font-size: 0.9rem;
+        }
+
+        .status-line .label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #ffcc70;
+            animation: dotPulse 1.4s ease-in-out infinite;
+        }
+
+        .status-dot.ok {
+            background: #4ade80;
+            animation: none;
+        }
+
+        .status-dot.fail {
+            background: #f87171;
+            animation: none;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        #version {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.35);
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>🚀 CD Procedure Practice</h1>
+    <div class="flash" id="flash"></div>
 
-    <p id="application-status">Checking application...</p>
-    <p id="backend-status">Checking backend...</p>
-    <p id="version"></p>
+    <div class="stage">
+        <h1>💥 Dhamaka Deployment</h1>
+        <p class="domain">dhamaka.covalience.tech</p>
+
+        <button id="dhamaka-btn" onclick="triggerDhamaka()">Press for Dhamaka 🎉</button>
+        <div class="message" id="message">Dhamaka deployment is done, kyu hila dala naa 😎</div>
+        <p class="replay-note" id="replay-note">click anywhere to reset</p>
+
+        <!-- NEW: Separate backend status box -->
+        <div class="status-box">
+            <div class="status-line">
+                <span class="label"><span class="status-dot" id="app-dot"></span>Application</span>
+                <span id="application-status">Checking application...</span>
+            </div>
+            <div class="status-line">
+                <span class="label"><span class="status-dot" id="backend-dot"></span>Backend</span>
+                <span id="backend-status">Checking backend...</span>
+            </div>
+            <p id="version"></p>
+        </div>
+    </div>
 
     <script>
+        const colors = ['#ffcc70', '#ff5e78', '#d63384', '#4ade80', '#60a5fa', '#f472b6', '#facc15'];
+
+        function triggerDhamaka() {
+            const btn = document.getElementById('dhamaka-btn');
+            const message = document.getElementById('message');
+            const flash = document.getElementById('flash');
+            const replayNote = document.getElementById('replay-note');
+
+            btn.classList.add('hide');
+            document.body.classList.add('shake');
+            flash.classList.add('go');
+
+            spawnParticles(60);
+
+            setTimeout(() => {
+                message.classList.add('show');
+                replayNote.classList.add('show');
+            }, 200);
+
+            setTimeout(() => {
+                document.body.classList.remove('shake');
+                flash.classList.remove('go');
+            }, 500);
+        }
+
+        function spawnParticles(count) {
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 150 + Math.random() * 250;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+                const size = 6 + Math.random() * 10;
+                const duration = 700 + Math.random() * 500;
+
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+
+                document.body.appendChild(p);
+
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(${dx - size/2}px, ${dy - size/2}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: duration,
+                    easing: 'cubic-bezier(0.25, 0.8, 0.4, 1)'
+                });
+
+                setTimeout(() => p.remove(), duration);
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'dhamaka-btn') return;
+            const message = document.getElementById('message');
+            const btn = document.getElementById('dhamaka-btn');
+            const replayNote = document.getElementById('replay-note');
+
+            if (message.classList.contains('show')) {
+                message.classList.remove('show');
+                btn.classList.remove('hide');
+                replayNote.classList.remove('show');
+            }
+        });
+
+        // --- NEW: Backend status check (independent of the button logic above) ---
         async function checkBackend() {
             try {
                 const response = await fetch("/api/status");
@@ -25,21 +326,21 @@
 
                 const data = await response.json();
 
-                document.getElementById("application-status").textContent =
-                    "Application is LIVE ✅";
-
-                document.getElementById("backend-status").textContent =
-                    "Backend: Connected ✅";
-
+                document.getElementById("application-status").textContent = "LIVE ✅";
+                document.getElementById("backend-status").textContent = "Connected ✅";
                 document.getElementById("version").textContent =
                     "Deployment Version: " + data.version;
 
+                document.getElementById("app-dot").classList.add("ok");
+                document.getElementById("backend-dot").classList.add("ok");
+
             } catch (error) {
                 document.getElementById("application-status").textContent =
-                    "Application is running, but backend is unavailable ❌";
+                    "Running, backend unavailable ❌";
+                document.getElementById("backend-status").textContent = "Disconnected ❌";
 
-                document.getElementById("backend-status").textContent =
-                    "Backend: Disconnected ❌";
+                document.getElementById("app-dot").classList.add("fail");
+                document.getElementById("backend-dot").classList.add("fail");
 
                 console.error(error);
             }
