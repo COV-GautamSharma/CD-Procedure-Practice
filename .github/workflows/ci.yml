@@ -12,8 +12,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7.0.1
 
-      - name: Build and start application
-        run: docker compose up --build --wait
+      - name: Set up docker Buildx
+        uses: docker/setup-buildx-action@v4.3.0
+
+      - name: Build backend image with cache
+        uses: docker/build-push-action@v7.3.0
+        with:
+          context: ./backend
+          tags: backend:latest
+          load: true
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      - name: Build frontend image with cache
+        uses: docker/build-push-action@v7.3.0
+        with:
+          context: ./frontend
+          tags: frontend:latest
+          load: true
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+      - name: Start application
+        run: docker compose up --wait
 
       - name: Check containers
         run: docker compose ps
