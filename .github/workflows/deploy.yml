@@ -52,7 +52,7 @@ jobs:
           echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Add server to know_hosts
+      - name: Add server to known_hosts
         run: |
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
@@ -62,7 +62,6 @@ jobs:
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy/docker-compose.new.yml
 
       - name: Deploy the file and healthcheck
-        id: deploy
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             set -e
@@ -88,9 +87,31 @@ jobs:
               exit 1
             fi
           EOF
+      - name: Verify site is reachable via domain
+        run: |
+          curl -f --retry 5 --retry-delay 5 https://dhamaka.covalience.tech
+          curl -f --retry 5 --retry-delay 5 https://dhamaka.covalience.tech/api/status
 
-      - name: Rolling Back on deploy failure
-        if: failure() && steps.deploy.outcome == 'failure'
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+  rollback:
+    needs: deploy
+    if: needs.deploy.result == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Add server to known_hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Rolling back to previous version
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             set -e
@@ -99,7 +120,7 @@ jobs:
             docker compose -f docker-compose.new.yml down
             if [ -f docker-compose.backup.yml ]; then
               docker compose -f docker-compose.backup.yml up -d --wait
-              echo "Backup docker-compose file is the one running - the new docker-compose file has failed the health check."
+              echo "Backup docker-compose file is the one running - the new docker-compose file failed the health check."
             fi
           EOF
 
