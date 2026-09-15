@@ -61,41 +61,45 @@ jobs:
           scp -i ~/.ssh/deploy_key docker-compose.prod.yml \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy/docker-compose.new.yml
 
-      - name: Deploy with safe swap and rollback
+      - name: Deploy the file and healthcheck
+        id: deploy
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             set -e
             cd ~/deploy
 
-            echo "Pulling new images defined in staging file . . ."
             docker compose -f docker-compose.new.yml pull
 
-            echo "Backing up current live compose file ( if exists )"
             if [ -f docker-compose.yml ]; then
               cp docker-compose.yml docker-compose.backup.yml
             fi
 
-            echo "Bringing down current running stack . . ."
             if [ -f docker-compose.yml ]; then
               docker compose -f docker-compose.yml down
             fi
 
-            echo "Starting new stack from staging file . . ."
             docker compose -f docker-compose.new.yml up -d --wait
 
-            echo "Running local health check . . ."
             if curl -f --retry 5 --retry-delay 5 http://localhost/api/status; then
-              echo "New stack healthy. Promoting staging file to live"
               mv docker-compose.new.yml docker-compose.yml
               docker compose ps
             else
-              echo "New stack failed health check. Rolling back . . ."
-              docker compose -f docker-compose.new.yml down
-              if [ -f docker-compose.backup.yml ]; then
-                docker compose -f docker-compose.backup.yml up -d --wait
-              fi
+              echo "Healthcheck failed"
               exit 1
             fi
+          EOF
+
+      - name: Rolling Back on deploy failure
+        if: failure() && steps.deploy.outcome == 'failure'
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            set -e
+            cd ~/deploy
+
+            docker compose -f docker-compose.new.yml down
+              if [ -f docker-compose.backup.yml ]; then
+            docker compose -f docker-compose.backup.yml up -d --wait
+              fi
           EOF
 
       - name: Verify site is reachable via domain
