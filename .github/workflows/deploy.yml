@@ -98,7 +98,7 @@ jobs:
 
   rollback:
     needs: deploy
-    if: needs.deploy.result == 'failure'
+    if: failure()
     runs-on: ubuntu-latest
     steps:
       - name: Set up SSH key
