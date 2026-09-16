@@ -5,7 +5,7 @@ COMPOSE_FILE="${1:-docker-compose.new.yml}"
 CONTAINERS="backend frontend"
 
 for cont in $CONTAINERS; do
-  cid=$(docker compose -f "$CONTAINERS" ps -q "$cont")
+  cid=$(docker compose -f "$COMPOSE_FILE" ps -q "$cont")
 
   if [ -z "$cid" ]; then
     echo "$cont: container is not found"
