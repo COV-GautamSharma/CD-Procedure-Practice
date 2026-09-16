@@ -28,7 +28,7 @@ jobs:
           tags: backend:latest
           load: true
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/backend:cache-build
-          cache-to: type=registry, ref=${{ secrets.DOCKERHUB_USERNAME }}/backend:cache-build,mode=max,image-manifest=true,oci-mediatypes=true
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/backend:cache-build,mode=max,image-manifest=true,oci-mediatypes=true
 
       - name: Build frontend image with cache
         uses: docker/build-push-action@v7.3.0
@@ -37,7 +37,7 @@ jobs:
           tags: frontend:latest
           load: true
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache-build
-          cache-to: type=registry, ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache-build,mode=max,image-manifest=true,oci-mediatypes=true
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache-build,mode=max,image-manifest=true,oci-mediatypes=true
 
       - name: Start application
         run: docker compose up --wait

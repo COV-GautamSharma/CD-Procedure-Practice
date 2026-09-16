@@ -27,8 +27,8 @@ jobs:
           context: ./backend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
-          cache-from: type=registry, ref=${{ secrets.DOCKERHUB_USERNAME }}/backend:cache-build
-          cache-to: type=registry, ref=${{ secrets.DOCKERHUB_USERNAME }}/backend:cache-build,mode=max,image-manifest=true,oci-mediatypes=true
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/backend:cache-build
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/backend:cache-build,mode=max,image-manifest=true,oci-mediatypes=true
 
       - name: Build & push frontend
         uses: docker/build-push-action@v7.3.0
@@ -36,8 +36,8 @@ jobs:
           context: ./frontend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
-          cache-from: type=registry, ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache-build
-          cache-to: type=registry, ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache-build,mode=max,image-manifest=true,oci-mediatypes=true
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache-build
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache-build,mode=max,image-manifest=true,oci-mediatypes=true
 
   deploy:
     needs: build-and-push
