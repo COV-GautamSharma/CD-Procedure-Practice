@@ -60,12 +60,15 @@ jobs:
         run: |
           scp -i ~/.ssh/deploy_key docker-compose.prod.yml \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy/docker-compose.new.yml
+          scp -i ~/.ssh/deploy_key check-health.sh \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/deploy/check-health.sh
 
       - name: Deploy the file and healthcheck
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             set -e
             cd ~/deploy
+            chmod +x check-health.sh
 
             docker compose -f docker-compose.new.yml pull
 
@@ -79,7 +82,7 @@ jobs:
 
             docker compose -f docker-compose.new.yml up -d --wait
 
-            if curl -f --retry 5 --retry-delay 5 http://localhost/api/status; then
+            if ./check-health.sh docker-compose.new.yml; then
               mv docker-compose.new.yml docker-compose.yml
               docker compose ps
             else
