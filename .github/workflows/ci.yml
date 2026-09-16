@@ -40,16 +40,15 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/frontend:cache-build,mode=max,image-manifest=true,oci-mediatypes=true
 
       - name: Start application
-        run: docker compose up --wait
+        run: docker compose up -d --wait
 
       - name: Check containers
         run: docker compose ps
 
-      - name: Test frontend
-        run: curl -f --retry 5 --retry-delay 2 http://localhost:3000
-
-      - name: Test backend through Nginx
-        run: curl -f --retry 5 --retry-delay 2 http://localhost:3000/api/status
+      - name: Run health checks
+        run: |
+          chmod +x check-health.sh \
+          ./check-health.sh docker-compose.yml
 
       - name: Show logs
         if: failure()
